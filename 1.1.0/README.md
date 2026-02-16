@@ -12,11 +12,11 @@ This folder contains 6 VS Code extensions for the GSF IR KTS Agentic System.
 | Extension | File | Size | Purpose |
 |-----------|------|------|---------|
 | **gsf-ir-kts-extension** | [gsf-ir-kts-extension-1.1.0.vsix](gsf-ir-kts-extension-1.1.0.vsix) | 58.6 MB | Core extension (vector DB, embeddings, retrieval) |
-| **kts-models-crossencoder-0.1.0.vsix** | [kts-models-crossencoder-0.1.0.vsix](kts-models-crossencoder-0.1.0.vsix) | 79.7 MB | Extension |
-| **kts-models-spacy-0.1.0.vsix** | [kts-models-spacy-0.1.0.vsix](kts-models-spacy-0.1.0.vsix) | 12.21 MB | Extension |
-| **kts-processors-nlp-0.1.0.vsix** | [kts-processors-nlp-0.1.0.vsix](kts-processors-nlp-0.1.0.vsix) | 40.71 MB | Extension |
-| **kts-processors-office-0.1.0.vsix** | [kts-processors-office-0.1.0.vsix](kts-processors-office-0.1.0.vsix) | 22.12 MB | Extension |
-| **kts-processors-pdf-0.1.0.vsix** | [kts-processors-pdf-0.1.0.vsix](kts-processors-pdf-0.1.0.vsix) | 27.14 MB | Extension |
+| **kts-models-crossencoder** | [kts-models-crossencoder-0.1.0.vsix](kts-models-crossencoder-0.1.0.vsix) | 79.7 MB | Cross-encoder model (required for retrieval) |
+| **kts-models-spacy** | [kts-models-spacy-0.1.0.vsix](kts-models-spacy-0.1.0.vsix) | 12.21 MB | spaCy language model (required for NLP) |
+| **kts-processors-nlp** | [kts-processors-nlp-0.1.0.vsix](kts-processors-nlp-0.1.0.vsix) | 40.71 MB | NLP features (NER, keyphrase extraction) |
+| **kts-processors-office** | [kts-processors-office-0.1.0.vsix](kts-processors-office-0.1.0.vsix) | 22.12 MB | Office document processing (DOCX, PPTX, PNG) |
+| **kts-processors-pdf** | [kts-processors-pdf-0.1.0.vsix](kts-processors-pdf-0.1.0.vsix) | 27.14 MB | PDF document processing |
 
 ---
 
@@ -101,4 +101,4 @@ Report issues at: https://github.com/karmsud/gsf_ir_kts_agentic_system/issues
 
 ---
 
-**Built on:** 2026-02-16 14:05:24
+**Built on:** 2026-02-16 14:07:24
