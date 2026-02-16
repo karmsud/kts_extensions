@@ -24,14 +24,12 @@ code --install-extension kts-models-crossencoder-0.0.1.vsix
 See version-specific README for detailed installation instructions.
 
 ## Repository Structure
-0.0.1/              # Version 0.0.1 extensions (Latest)
+
+```
+kts_extensions/
+  0.0.1/              # Version 0.0.1 extensions (Latest)
     *.vsix            # Extension files (6 total, 252.68 MB)
     versions.json     # Manifest
-    README.md         # Installation guide
-  1.1.0/              # Legacy version (deprecated)
-  1.1.0/              # Version 1.1.0 extensions
-    *.vsix            # Extension files
-    README.md         # Installation guide
   CHANGELOG.md        # Version history
   README.md           # This file
 ```
