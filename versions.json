@@ -1,0 +1,42 @@
+{
+    "released":  "2026-02-16",
+    "extensions":  [
+                       {
+                           "size_mb":  237.78,
+                           "filename":  "gsf-ir-kts-extension-0.0.1.vsix",
+                           "name":  "gsf-ir-kts-extension",
+                           "version":  "0.0.1"
+                       },
+                       {
+                           "size_mb":  79.7,
+                           "filename":  "kts-models-crossencoder-0.0.1.vsix",
+                           "name":  "kts-models-crossencoder",
+                           "version":  "0.0.1"
+                       },
+                       {
+                           "size_mb":  24.41,
+                           "filename":  "kts-models-spacy-0.0.1.vsix",
+                           "name":  "kts-models-spacy",
+                           "version":  "0.0.1"
+                       },
+                       {
+                           "size_mb":  40.71,
+                           "filename":  "kts-processors-nlp-0.0.1.vsix",
+                           "name":  "kts-processors-nlp",
+                           "version":  "0.0.1"
+                       },
+                       {
+                           "size_mb":  22.12,
+                           "filename":  "kts-processors-office-0.0.1.vsix",
+                           "name":  "kts-processors-office",
+                           "version":  "0.0.1"
+                       },
+                       {
+                           "size_mb":  27.14,
+                           "filename":  "kts-processors-pdf-0.0.1.vsix",
+                           "name":  "kts-processors-pdf",
+                           "version":  "0.0.1"
+                       }
+                   ],
+    "version":  "0.0.1"
+}
