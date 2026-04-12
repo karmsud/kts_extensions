@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Build outputs
+dist/
+client/build/
+release/
+
+# Database files (never commit — lives on network share)
+*.db
+*.sqlite
+*.db-shm
+*.db-wal
+*.db.bak
+
+# Environment / secrets
+.env
+config.json
+
+# Logs
+logs/
+*.log
+
+# Uploads / temp
+uploads/
+temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript incremental build
+*.tsbuildinfo
+
+# PowerShell scripts (contain internal infrastructure details)
+PS_Scripts/
+
+# Data files
+tblExternalDIDRef.csv
+
+# Archives
+*.zip
+
+# VS Code workspace settings (optional - remove if team shares settings)
+# .vscode/
+
+# IDE / editor
+*.swp
+*.swo
+*~

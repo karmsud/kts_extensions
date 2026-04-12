@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRP Management - Performance Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #2563eb; }
+        .stat-label { color: #6b7280; margin-top: 5px; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error { background: #fef2f2; color: #991b1b; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .success { color: #059669; }
+        .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        .btn:hover { background: #1d4ed8; }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        .data-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .item { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        .item:last-child { border-bottom: none; }
+        .timestamp { font-size: 0.8rem; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FRP Management Dashboard - Performance Test</h1>
+            <p>Testing optimized API calls with timeout handling</p>
+            <div class="timestamp">Last updated: <span id="lastUpdate">Loading...</span></div>
+            <button id="refreshBtn" class="btn" onclick="loadDashboard()">Refresh Data</button>
+        </div>
+
+        <div id="loadingContainer" class="loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard data...</p>
+            <div id="loadingDetails"></div>
+        </div>
+
+        <div id="errorContainer" style="display: none;"></div>
+
+        <div id="statsContainer" class="stats-grid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="jobCount">-</div>
+                <div class="stat-label">Total Jobs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dealCount">-</div>
+                <div class="stat-label">Total Deals</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="servicerCount">-</div>
+                <div class="stat-label">Unique Servicers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="systemStatus">-</div>
+                <div class="stat-label">System Status</div>
+            </div>
+        </div>
+
+        <div id="dataContainer" style="display: none;">
+            <div class="data-section">
+                <h3>Recent Jobs (<span id="jobsLoaded">0</span>)</h3>
+                <div id="jobsList"></div>
+            </div>
+
+            <div class="data-section">
+                <h3>Recent Deals (<span id="dealsLoaded">0</span>)</h3>
+                <div id="dealsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let loadingState = {
+            jobs: false,
+            deals: false,
+            stats: false
+        };
+
+        function updateLoadingDetails() {
+            const details = [];
+            if (loadingState.jobs) details.push('• Loading jobs...');
+            if (loadingState.deals) details.push('• Loading deals...');
+            if (loadingState.stats) details.push('• Loading statistics...');
+            
+            document.getElementById('loadingDetails').innerHTML = details.join('<br>');
+        }
+
+        function showError(message, type = 'error') {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = `<div class="${type}">${message}</div>`;
+            container.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorContainer').style.display = 'none';
+        }
+
+        function updateLastUpdate() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        async function fetchWithTimeout(url, timeout = 15000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            try {
+                const response = await fetch(url, { 
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error(`Request timed out after ${timeout}ms`);
+                }
+                throw error;
+            }
+        }
+
+        async function loadJobs() {
+            loadingState.jobs = true;
+            updateLoadingDetails();
+            
+            try {
+                console.log('Loading jobs...');
+                const data = await fetchWithTimeout('http://localhost:3001/api/v1/jobs?limit=10');
+                
+                if (data.success && data.data) {
+                    document.getElementById('jobCount').textContent = data.data.length;
+                    document.getElementById('jobsLoaded').textContent = data.data.length;
+                    
+                    const jobsList = document.getElementById('jobsList');
+                    jobsList.innerHTML = data.data.slice(0, 5).map(job => `
+                        <div class="item">
+                            <strong>${job.job_name || 'Unnamed Job'}</strong>
+                            <div class="timestamp">Updated: ${job.updated_at ? new Date(job.updated_at).toLocaleDateString() : 'Unknown'}</div>
+                        </div>
+                    `).join('');
+                    
+                    console.log('Jobs loaded successfully:', data.data.length);
+                    return { success: true, count: data.data.length };
+                } else {
+                    throw new Error(data.error || 'Failed to load jobs');
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                showError(`Jobs: ${error.message}`);
+                return { success: false, error: error.message };
+            } finally {
+                loadingState.jobs = false;
+                updateLoadingDetails();
+            }
+        }
+
+        async function loadDeals() {
+            loadingState.deals = true;
+            updateLoadingDetails();
+            
+            try {
+                console.log('Loading deals...');
+                const data = await fetchWithTimeout('http://localhost:3001/api/v1/deals?limit=10');
+                
+                if (data.success && data.data) {
+                    document.getElementById('dealCount').textContent = data.data.length;
+                    document.getElementById('dealsLoaded').textContent = data.data.length;
+                    
+                    const dealsList = document.getElementById('dealsList');
+                    dealsList.innerHTML = data.data.slice(0, 5).map(deal => `
+                        <div class="item">
+                            <strong>${deal.deal_name || 'Unnamed Deal'}</strong>
+                            <div class="timestamp">Keyword: ${deal.keyword || 'N/A'}</div>
+                        </div>
+                    `).join('');
+                    
+                    console.log('Deals loaded successfully:', data.data.length);
+                    return { success: true, count: data.data.length };
+                } else {
+                    throw new Error(data.error || 'Failed to load deals');
+                }
+            } catch (error) {
+                console.error('Error loading deals:', error);
+                showError(`Deals: ${error.message}`);
+                return { success: false, error: error.message };
+            } finally {
+                loadingState.deals = false;
+                updateLoadingDetails();
+            }
+        }
+
+        async function loadStats() {
+            loadingState.stats = true;
+            updateLoadingDetails();
+            
+            try {
+                console.log('Loading stats...');
+                const data = await fetchWithTimeout('http://localhost:3001/api/v1/deals/stats');
+                
+                if (data.success && data.data) {
+                    document.getElementById('servicerCount').textContent = data.data.uniqueServicers || 0;
+                    
+                    console.log('Stats loaded successfully:', data.data);
+                    return { success: true, data: data.data };
+                } else {
+                    throw new Error(data.error || 'Failed to load statistics');
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                showError(`Stats: ${error.message}`);
+                return { success: false, error: error.message };
+            } finally {
+                loadingState.stats = false;
+                updateLoadingDetails();
+            }
+        }
+
+        async function loadDashboard() {
+            console.log('Starting dashboard load...');
+            const startTime = Date.now();
+            
+            // Reset UI
+            hideError();
+            document.getElementById('loadingContainer').style.display = 'block';
+            document.getElementById('statsContainer').style.display = 'none';
+            document.getElementById('dataContainer').style.display = 'none';
+            document.getElementById('refreshBtn').disabled = true;
+            
+            // Load data independently
+            const results = await Promise.allSettled([
+                loadJobs(),
+                loadDeals(),
+                loadStats()
+            ]);
+
+            const loadTime = Date.now() - startTime;
+            console.log(`Dashboard load completed in ${loadTime}ms`);
+
+            // Check results
+            const jobsResult = results[0];
+            const dealsResult = results[1];
+            const statsResult = results[2];
+
+            let hasErrors = false;
+            let errorMessages = [];
+
+            if (jobsResult.status === 'rejected') {
+                hasErrors = true;
+                errorMessages.push(`Jobs: ${jobsResult.reason}`);
+            }
+
+            if (dealsResult.status === 'rejected') {
+                hasErrors = true;
+                errorMessages.push(`Deals: ${dealsResult.reason}`);
+            }
+
+            if (statsResult.status === 'rejected') {
+                hasErrors = true;
+                errorMessages.push(`Stats: ${statsResult.reason}`);
+            }
+
+            // Update system status
+            if (hasErrors) {
+                document.getElementById('systemStatus').textContent = 'Issues Detected';
+                document.getElementById('systemStatus').style.color = '#dc2626';
+                showError('Some components failed to load:<br>' + errorMessages.join('<br>'), 'error');
+            } else {
+                document.getElementById('systemStatus').textContent = 'Healthy';
+                document.getElementById('systemStatus').style.color = '#059669';
+            }
+
+            // Show results
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('statsContainer').style.display = 'grid';
+            document.getElementById('dataContainer').style.display = 'block';
+            document.getElementById('refreshBtn').disabled = false;
+            
+            updateLastUpdate();
+            
+            console.log('Dashboard UI updated');
+        }
+
+        // Auto-load on page ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page ready, loading dashboard...');
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>

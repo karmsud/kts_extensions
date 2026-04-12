@@ -1,0 +1,116 @@
+/* For tabular numbers in deal count */
+.deal-count-tabular {
+  font-variant-numeric: tabular-nums;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Variables for Theme System */
+:root {
+  /* Default theme (Light Blue) */
+  --color-primary: #3B82F6;
+  --color-primaryHover: #2563EB;
+  --color-secondary: #64748B;
+  --color-accent: #06B6D4;
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text: #1E293B;
+  --color-textSecondary: #64748B;
+  --color-border: #E2E8F0;
+  --color-sidebar: #FFFFFF;
+  --color-sidebarText: #374151;
+  --color-topbar: #FFFFFF;
+  --color-highlight: #EFF6FF;
+}
+
+/* Custom styles */
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  /* Theme-aware button styles */
+  .btn-primary {
+    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--color-primaryHover);
+    border-color: var(--color-primaryHover);
+  }
+  
+  .btn-primary:focus {
+    --tw-ring-color: var(--color-primary);
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    border-width: 1px;
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--color-highlight);
+  }
+  
+  .btn-secondary:focus {
+    --tw-ring-color: var(--color-primary);
+  }
+  
+  .form-input {
+    @apply block w-full rounded-md shadow-sm sm:text-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    border-width: 1px;
+  }
+  
+  .form-input:focus {
+    border-color: var(--color-primary);
+    --tw-ring-color: var(--color-primary);
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium;
+    color: var(--color-text);
+  }
+  
+  /* Card styles */
+  .card {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+  }
+  
+  /* Text utilities */
+  .text-primary {
+    color: var(--color-primary);
+  }
+  
+  .text-secondary {
+    color: var(--color-textSecondary);
+  }
+  
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+  
+  .bg-surface {
+    background-color: var(--color-surface);
+  }
+  
+  .bg-highlight {
+    background-color: var(--color-highlight);
+  }
+  
+  .border-theme {
+    border-color: var(--color-border);
+  }
+} 
