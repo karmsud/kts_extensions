@@ -273,7 +273,7 @@ The File Routing and Processing (FRP) Management System is a critical business a
 
 **Technical Constraints**
 - Must integrate with existing PowerShell infrastructure
-- Limited to current MySQL database platform
+- Limited to current SQLite database platform
 - Must maintain backward compatibility with existing systems
 
 **Business Constraints**

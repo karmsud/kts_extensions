@@ -4,14 +4,13 @@
 
 ### Step 1: Prerequisites
 - **Node.js**: Version 18 or higher
-- **MySQL**: Any recent version
 - **Git**: For version control
 
 ### Step 2: Project Setup
 
 1. **Clone or create the project directory**
 ```bash
-mkdir frp-prototype
+git clone <repository-url>
 cd frp-prototype
 ```
 
@@ -20,26 +19,10 @@ cd frp-prototype
 # Install backend dependencies
 npm install
 
-# Create environment file
-cat > .env << 'EOF'
-PORT=3001
-NODE_ENV=development
-
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_db_password_here
-DB_NAME=world
-
-# File Paths
-POWERSHELL_SCRIPT_PATH=./outlook.ps1
-SCRIPT_VERSIONS_DIR=./script_versions
-UPLOAD_DIR=./uploads
-
-# API Configuration
-API_PREFIX=/api/v1
-EOF
+# Create config file from example
+cp config.example.json config.json
+# Edit config.json and set DB_PATH to your desired SQLite database location
+# Example: {"DB_PATH": "./database.db", "PORT": 3001}
 ```
 
 3. **Frontend Setup**
@@ -59,7 +42,7 @@ cd ..
 
 ### Step 3: Database Setup
 
-The database tables will be automatically created when you first run the backend. The application uses your existing MySQL "world" database.
+No manual database setup is required. The SQLite database and all tables are created automatically when you first start the backend server. The database file will be created at the path specified in `config.json`.
 
 ### Step 4: Import Your Data
 
@@ -145,9 +128,9 @@ npm run preview  # Preview production build
 ### Common Issues:
 
 1. **Database Connection Error:**
-   - Verify MySQL is running
-   - Check credentials in `.env` file
-   - Ensure `world` database exists
+   - Verify `config.json` exists with valid `DB_PATH`
+   - Ensure database file path is accessible
+   - Check file permissions on database directory
 
 2. **Port Already in Use:**
    - Backend (3001): Change `PORT` in `.env`
@@ -228,7 +211,7 @@ If you encounter issues:
 1. Check the browser console for errors
 2. Check the terminal/server logs
 3. Verify all dependencies are installed
-4. Ensure MySQL is running and accessible
+4. Ensure `config.json` has a valid `DB_PATH` setting
 
 ---
 

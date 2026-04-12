@@ -52,12 +52,8 @@ The File Routing and Processing (FRP) Management System is designed as a modern 
                     ┌─────────▼─────────┐
                     │  Database Layer   │
                     │  ┌─────────────┐  │
-                    │  │   MySQL     │  │
-                    │  │   Primary   │  │
-                    │  └─────────────┘  │
-                    │  ┌─────────────┐  │
-                    │  │   MySQL     │  │
-                    │  │   Replica   │  │
+                    │  │   SQLite     │  │
+                    │  │   Database   │  │
                     │  └─────────────┘  │
                     └───────────────────┘
                               │
@@ -91,9 +87,9 @@ The system follows a classic three-tier architecture pattern:
 - Middleware for cross-cutting concerns
 
 **Data Tier (Persistence)**
-- MySQL relational database
-- JSON columns for flexible configuration
-- Connection pooling for performance
+- SQLite embedded database (via better-sqlite3)
+- WAL mode for concurrent read/write access
+- File-based storage — supports local paths and network shares
 - Transaction support for data integrity
 
 ### 2. Layered Architecture
@@ -157,10 +153,13 @@ Database connections and configuration management use singleton pattern:
 ```typescript
 class Database {
   private static instance: Database;
-  private pool: mysql.Pool;
+  private db: BetterSqlite3.Database;
 
   private constructor() {
-    this.pool = mysql.createPool(config);
+    const config = getAppConfig();
+    this.db = new BetterSqlite3(config.DB_PATH);
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('busy_timeout = 5000');
   }
 
   public static getInstance(): Database {
@@ -555,8 +554,8 @@ Security Team
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │   Development   │  │     Staging     │  │   Production    │
 │                 │  │                 │  │                 │
-│ - Local MySQL   │  │ - Shared MySQL  │  │ - HA MySQL      │
-│ - Hot Reload    │  │ - Full Build    │  │ - Load Balanced │
+│ - Local SQLite  │  │ - Shared SQLite │  │ - SQLite on     │
+│ - Hot Reload    │  │ - Full Build    │  │   Network Share │
 │ - Debug Mode    │  │ - Production    │  │ - Monitoring    │
 │                 │  │   Config        │  │ - Backup        │
 └─────────────────┘  └─────────────────┘  └─────────────────┘
@@ -577,9 +576,10 @@ services:
       - NODE_ENV=production
     
   database:
-    image: mysql:8.0
+    # SQLite is file-based, no separate container needed
+    # Database file mounted as a volume
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/data/frp
 ```
 
 ### Cloud Architecture Options
@@ -595,7 +595,7 @@ CloudFront (CDN)
 Application Load Balancer
     │
     ├─► ECS/Fargate (Backend)
-    │   └─► RDS MySQL
+    │   └─► SQLite DB (file-based)
     └─► S3 (Static Files)
 ```
 
@@ -610,7 +610,7 @@ Front Door
 Application Gateway
     │
     ├─► Container Instances
-    │   └─► Azure Database for MySQL
+    │   └─► SQLite DB (file-based)
     └─► Blob Storage
 ```
 
@@ -649,9 +649,9 @@ Database
 - Query result caching
 
 **Database Caching**
-- MySQL query cache
-- Connection pooling
+- SQLite WAL mode for read concurrency
 - Prepared statement caching
+- Busy timeout for write contention
 
 ### Scalability Architecture
 

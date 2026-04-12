@@ -38,7 +38,6 @@ The FRP Management System bridges the gap between complex PowerShell automation 
 
 ### Prerequisites
 - **Node.js 18+** with npm
-- **MySQL 8.0+**
 - **Git** for version control
 
 ### Setup Instructions
@@ -50,16 +49,12 @@ cd frp-prototype
 npm install
 cd client && npm install && cd ..
 
-# 2. Configure environment
-cp .env.example .env
-# Edit .env with your database credentials
+# 2. Configure database path
+cp config.example.json config.json
+# Edit config.json and set DB_PATH to your desired SQLite database location
+# The database file will be created automatically on first run
 
-# 3. Setup database
-mysql -u root -p
-CREATE DATABASE world;
-EXIT;
-
-# 4. Start development servers
+# 3. Start development servers
 npm run dev           # Backend (Terminal 1)
 cd client && npm run dev  # Frontend (Terminal 2)
 ```
@@ -90,7 +85,7 @@ cd client && npm run dev  # Frontend (Terminal 2)
 ### System Architecture
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React SPA     │    │   Node.js API   │    │   MySQL DB      │
+│   React SPA     │    │   Node.js API   │    │   SQLite DB     │
 │                 │    │                 │    │                 │
 │ - Dashboard     │◄──►│ - Controllers   │◄──►│ - Jobs Tables   │
 │ - Jobs Mgmt     │    │ - Services      │    │ - Deals Tables  │
@@ -109,7 +104,7 @@ cd client && npm run dev  # Frontend (Terminal 2)
 ### Technology Stack
 - **Frontend**: React 18 + TypeScript + Tailwind CSS
 - **Backend**: Node.js + Express + TypeScript
-- **Database**: MySQL 8.0 with JSON support
+- **Database**: SQLite (via better-sqlite3) — zero-configuration, file-based
 - **Integration**: PowerShell XML + CSV processing
 
 ## ✨ Features
@@ -121,7 +116,7 @@ cd client && npm run dev  # Frontend (Terminal 2)
 - **Data Import/Export**: PowerShell XML and CSV file processing
 - **Dashboard**: Real-time statistics and operational overview
 - **REST API**: Complete backend API with error handling
-- **Database Integration**: MySQL with connection pooling
+- **Database Integration**: SQLite with WAL mode for concurrent access
 - **File Processing**: XML parsing and generation for PowerShell scripts
 
 ### Future Enhancements 🔄
@@ -176,10 +171,11 @@ GET    /api/v1/settings                # Application settings
 - **`frp_job_config_drafts`** - Staging area for configuration changes
 
 ### Key Features
-- **JSON columns** for flexible configuration storage
+- **SQLite with WAL mode** for concurrent read/write access
 - **Foreign key constraints** for data integrity
 - **Indexes** for performance optimization
 - **Transaction support** for complex operations
+- **Network share support** via configurable DB_PATH
 
 ## 🔄 Data Import/Export
 
@@ -324,12 +320,12 @@ This is a prototype for internal evaluation. For feedback or improvements:
 1. **Check Documentation**: Review the comprehensive docs in the `/docs` folder
 2. **Check Logs**: Review browser console and server terminal for errors
 3. **Verify Setup**: Ensure all dependencies are installed and services running
-4. **Database Issues**: Verify MySQL is running and credentials are correct
+- **Database Issues**: Verify the DB_PATH in config.json is accessible
 
 ### Common Issues
 
 - **Port conflicts**: Change ports in `.env` file if 3001/3000 are in use
-- **Database connection**: Verify MySQL service is running and credentials are correct
+- **Database connection**: Verify config.json DB_PATH points to a valid, writable location
 - **Import failures**: Ensure `outlook.ps1` and `tblExternalDIDRef.csv` files exist in project root
 - **Build issues**: Delete `node_modules` and run `npm install` in both root and client directories
 
@@ -337,28 +333,19 @@ For additional support, consult the [Troubleshooting Guide](docs/TROUBLESHOOTING
 
 ---
 
-## 📋 Environment Variables
+## 📋 Configuration
 
-```bash
-# Backend Configuration
-PORT=3001
-NODE_ENV=development
+The application uses `config.json` for configuration (copy from `config.example.json`):
 
-# Database Configuration  
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=world
-
-# File Paths
-POWERSHELL_SCRIPT_PATH=./outlook.ps1
-SCRIPT_VERSIONS_DIR=./script_versions
-UPLOAD_DIR=./uploads
-
-# API Configuration
-API_PREFIX=/api/v1
+```json
+{
+  "DB_PATH": "./database.db",
+  "PORT": 3001
+}
 ```
+
+- **DB_PATH**: Path to the SQLite database file. Can be a local path or a network share (e.g., `X:\FRP\database.db`). The database is created automatically on first run.
+- **PORT**: Server port (default: 3001)
 
 ---
 

@@ -3,7 +3,7 @@
 
 ### Technical Overview
 
-The FRP Management System is implemented as a modern web application using a three-tier architecture with React frontend, Node.js backend, and MySQL database. The system provides REST APIs, real-time data management, and integration with existing PowerShell automation infrastructure.
+The FRP Management System is implemented as a modern web application using a three-tier architecture with React frontend, Node.js backend, and SQLite database. The system provides REST APIs, real-time data management, and integration with existing PowerShell automation infrastructure.
 
 **Technical Vision**: To deliver a scalable, maintainable, and secure web application that seamlessly integrates with existing enterprise infrastructure while providing modern user experience and robust operational capabilities.
 
@@ -16,7 +16,7 @@ The FRP Management System is implemented as a modern web application using a thr
 **Architecture Pattern**: Three-Tier Architecture
 - **Presentation Tier**: React SPA with TypeScript
 - **Application Tier**: Node.js REST API with Express
-- **Data Tier**: MySQL with connection pooling
+- **Data Tier**: SQLite (file-based, embedded)
 
 **Communication Protocols**
 - HTTP/HTTPS for client-server communication
@@ -28,7 +28,7 @@ The FRP Management System is implemented as a modern web application using a thr
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React SPA     │    │   Node.js API   │    │   MySQL DB      │
+│   React SPA     │    │   Node.js API   │    │   SQLite DB     │
 │                 │    │                 │    │                 │
 │ - Dashboard     │◄──►│ - Controllers   │◄──►│ - Jobs Tables   │
 │ - Jobs Mgmt     │    │ - Services      │    │ - Deals Tables  │
@@ -51,7 +51,7 @@ The FRP Management System is implemented as a modern web application using a thr
 Developer Machine
 ├── Frontend Dev Server (Vite) - Port 3000
 ├── Backend Dev Server (ts-node-dev) - Port 3001
-└── Local MySQL Database - Port 3306
+└── Local SQLite Database (file-based)
 ```
 
 **Production Environment** (Future)
@@ -96,8 +96,8 @@ Load Balancer
 - **TypeScript 5.3**: Static typing for backend code
 
 **Database and ORM**
-- **MySQL2 3.6**: Modern MySQL driver with promise support
-- **Connection Pooling**: Built-in connection management
+- **better-sqlite3**: High-performance synchronous SQLite driver for Node.js
+- **WAL mode**: Write-Ahead Logging for concurrent read/write access
 - **Raw SQL**: Direct queries for performance and control
 
 **Security and Middleware**
@@ -114,12 +114,12 @@ Load Balancer
 ### 2.3 Database Technology
 
 **Database Management System**
-- **MySQL 8.0+**: Relational database with JSON support
-- **InnoDB Storage Engine**: ACID compliance and foreign keys
-- **UTF8MB4 Character Set**: Full Unicode support
+- **SQLite**: Embedded, file-based relational database (via better-sqlite3)
+- **WAL Mode**: Concurrent read access with write-ahead logging
+- **UTF-8**: Full Unicode support
 
 **Database Features Used**
-- **JSON Data Type**: For flexible configuration storage
+- **File-based storage**: Single `.db` file, supports local and network share paths
 - **Foreign Key Constraints**: Data integrity enforcement
 - **Indexes**: Performance optimization
 - **Transactions**: Data consistency for complex operations
@@ -240,7 +240,6 @@ CREATE TABLE frp_job_config_drafts (
 - Foreign key indexes for join optimization
 
 **Query Optimization**
-- Connection pooling to reduce connection overhead
 - Prepared statements to prevent SQL injection
 - Query result caching for frequently accessed data
 - Pagination for large datasets
@@ -512,7 +511,7 @@ POST /api/v1/jobs
 **Horizontal Scaling**
 - Stateless application design
 - Load balancer compatibility
-- Database connection pooling
+- SQLite WAL mode for concurrent reads
 - Caching strategy implementation
 
 **Vertical Scaling**
@@ -555,7 +554,6 @@ POST /api/v1/jobs
 
 **Software Requirements**
 - Node.js 18+ with npm
-- MySQL 8.0+ or compatible
 - Git for version control
 - Modern code editor (VS Code recommended)
 
@@ -563,24 +561,23 @@ POST /api/v1/jobs
 ```bash
 # System dependencies
 Node.js 18+
-MySQL 8.0+
 Git
 
 # Project dependencies
 npm install (backend)
 cd client && npm install (frontend)
 
-# Environment configuration
-.env file with database credentials
-MySQL database setup and initialization
+# Configuration
+cp config.example.json config.json
+# Edit config.json with DB_PATH setting
 ```
 
 ### 7.2 Production Environment (Future)
 
 **Server Specifications**
-- Web/App Servers: 8+ cores, 16GB RAM, 100GB SSD
-- Database Server: 16+ cores, 32GB RAM, 500GB SSD
-- Load Balancer: 4+ cores, 8GB RAM, 50GB SSD
+- Web/App Servers: 4+ cores, 8GB RAM, 50GB SSD
+- No separate database server required (SQLite is embedded)
+- Load Balancer: 2+ cores, 4GB RAM, 50GB SSD
 
 **Operating System**
 - Linux (Ubuntu 20.04 LTS or CentOS 8)
@@ -596,17 +593,15 @@ MySQL database setup and initialization
 ### 7.3 Database Infrastructure
 
 **Development Database**
-- MySQL 8.0+ on local machine
-- Single instance configuration
-- Local storage for data files
-- Regular backup to local storage
+- SQLite file in project directory (`./database.db`)
+- Auto-created on first run
+- No setup required
 
-**Production Database** (Future)
-- MySQL 8.0+ on dedicated server
-- Master-slave replication for high availability
-- SSD storage for performance
-- Automated backup to remote storage
-- Connection pooling and load balancing
+**Production Database**
+- SQLite file on network share or local storage
+- Configure path via `config.json` (`DB_PATH`)
+- Regular file-based backups
+- WAL mode for concurrent access
 
 ### 7.4 Monitoring and Logging
 
@@ -687,9 +682,9 @@ MySQL database setup and initialization
 ### 8.3 Database Integration
 
 **Connection Management**
-- Database connection pooling
-- Connection retry logic
-- Connection timeout handling
+- Single SQLite database instance (singleton pattern)
+- Busy timeout for write contention handling
+- WAL mode for concurrent read access
 - Transaction management
 
 **Data Access Patterns**
@@ -712,8 +707,7 @@ npm run dev
 # Start frontend server (separate terminal)
 cd client && npm run dev
 
-# Database setup
-mysql -u root -p < database/schema.sql
+# Database setup is automatic — tables created on first run
 ```
 
 **Development Workflow**
@@ -747,20 +741,12 @@ cd client && npm run build
 ### 9.3 Configuration Management
 
 **Environment Configuration**
-```typescript
-// Environment variables
-NODE_ENV=production
-PORT=3001
-DB_HOST=database.internal
-DB_USER=frp_app_user
-DB_PASSWORD=secure_password
-DB_NAME=frp_production
-
-// Application configuration
-API_PREFIX=/api/v1
-UPLOAD_DIR=/app/uploads
-BACKUP_DIR=/app/backups
-LOG_LEVEL=info
+```json
+// config.json
+{
+  "DB_PATH": "./database.db",
+  "PORT": 3001
+}
 ```
 
 **Configuration Security**
@@ -773,14 +759,14 @@ LOG_LEVEL=info
 
 **Database Backup Strategy**
 ```bash
-# Daily full backup
-mysqldump --single-transaction frp_production > backup_$(date +%Y%m%d).sql
+# Daily full backup (SQLite is a single file)
+cp database.db backup_$(date +%Y%m%d).db
 
-# Transaction log backup every 15 minutes
-mysqlbinlog --read-from-remote-server --host=database.internal --raw --stop-never mysql-bin.000001
+# Or use SQLite's backup command for consistency
+sqlite3 database.db ".backup backup_$(date +%Y%m%d).db"
 
 # Backup verification
-mysql -e "SELECT COUNT(*) FROM frp_mailbox_jobs;" backup_test_db
+sqlite3 backup_$(date +%Y%m%d).db "PRAGMA integrity_check;"
 ```
 
 **Configuration File Backup**

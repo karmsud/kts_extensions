@@ -5,15 +5,8 @@
 ### 1. Remove Hardcoded Database Password
 **File:** `src/config/database.ts`
 
-```typescript
-// ❌ CRITICAL VULNERABILITY
-password: process.env.DB_PASSWORD || 'HARDCODED_PASSWORD_HERE'
-
-// ✅ SECURE APPROACH
-password: process.env.DB_PASSWORD || (() => {
-  throw new Error('DB_PASSWORD environment variable is required');
-})()
-```
+> **Note:** This issue has been resolved. The application now uses SQLite via `better-sqlite3` with
+> configuration loaded from `config.json` (`DB_PATH`). No passwords are needed for SQLite.
 
 ### 2. Implement Input Validation Middleware
 **New File:** `src/middleware/validation.ts`
@@ -140,57 +133,46 @@ export class AppError extends Error {
 **Updated:** `src/config/database.ts`
 
 ```typescript
-import mysql from 'mysql2/promise';
+import Database from 'better-sqlite3';
 import { EventEmitter } from 'events';
 
-class Database extends EventEmitter {
-  private static instance: Database;
-  private pool: mysql.Pool;
+class DatabaseManager extends EventEmitter {
+  private static instance: DatabaseManager;
+  private db: Database.Database;
   private isClosing = false;
 
   private constructor() {
     super();
-    this.pool = mysql.createPool({
-      ...dbConfig,
-      // Add connection monitoring
-      acquireTimeout: 60000,
-      timeout: 60000,
-      reconnect: true,
-      idleTimeout: 300000,
-      maxIdle: 10
+    this.db = new Database(dbPath, {
+      // WAL mode for concurrent reads
+      // busy_timeout for write contention
     });
 
-    // Monitor connection events
-    this.pool.on('connection', (connection) => {
-      console.log('New connection as id ' + connection.threadId);
-    });
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('busy_timeout = 5000');
+    this.db.pragma('foreign_keys = ON');
 
-    this.pool.on('error', (err) => {
-      console.error('Database pool error:', err);
-      this.emit('error', err);
-    });
+    console.log('SQLite database connected');
   }
 
-  public async getConnection() {
+  public getDatabase(): Database.Database {
     if (this.isClosing) {
       throw new Error('Database is closing');
     }
-    return this.pool.getConnection();
+    return this.db;
   }
 
-  public async close(): Promise<void> {
+  public close(): void {
     this.isClosing = true;
-    await this.pool.end();
-    console.log('Database connections closed');
+    this.db.close();
+    console.log('Database connection closed');
   }
 
   // Add health check
-  public async healthCheck(): Promise<boolean> {
+  public healthCheck(): boolean {
     try {
-      const connection = await this.pool.getConnection();
-      await connection.ping();
-      connection.release();
-      return true;
+      const result = this.db.pragma('integrity_check');
+      return result[0]?.integrity_check === 'ok';
     } catch (error) {
       console.error('Database health check failed:', error);
       return false;

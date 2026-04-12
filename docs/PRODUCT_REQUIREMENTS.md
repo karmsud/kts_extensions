@@ -24,7 +24,7 @@ The FRP Management System is a web-based application that provides a centralized
 **Integration Capabilities**
 - PowerShell script generation and management
 - CSV data import/export
-- MySQL database integration
+- SQLite database integration
 - REST API for external integrations
 
 **User Experience**
@@ -429,7 +429,7 @@ Acceptance Criteria:
 **Three-Tier Architecture**
 - **Presentation Tier**: React-based web interface
 - **Application Tier**: Node.js/Express REST API
-- **Data Tier**: MySQL database with connection pooling
+- **Data Tier**: SQLite database (embedded, file-based)
 
 **Integration Layer**
 - PowerShell XML generation and parsing
@@ -448,7 +448,7 @@ Acceptance Criteria:
 **Backend Technologies**
 - Node.js with Express framework
 - TypeScript for type safety
-- MySQL2 for database connectivity
+- better-sqlite3 for database connectivity
 - Multer for file upload handling
 
 **Development Tools**
